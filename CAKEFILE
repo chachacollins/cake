@@ -1,0 +1,3 @@
+main : main.o => 
+    mkdir bin,
+    gcc -o bin/main main.c;
