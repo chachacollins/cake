@@ -1,6 +1,8 @@
 #include <stdio.h>
+#include "utils.h"
 
 int main(void)
 {
-    printf("Hello world\n");
+    const char* source = readFile("CAKEFILE");
+    printf("%s\n", source);
 }
