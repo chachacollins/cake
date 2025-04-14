@@ -1,14 +1,24 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+#define TOKENS      \
+    X(TOK_IDENT)       \
+    X(TOK_FAT_ARROW)   \
+    X(TOK_SEMICOLON)   \
+    X(TOK_COLON)       \
+    X(TOK_COMMA)       \
+    X(TOK_EOF)         \
+    X(TOK_ILLEGAL)
+
+#define X(name) name,
 typedef enum {
-    TOK_IDENT,
-    TOK_FAT_ARROW,
-    TOK_SEMICOLON,
-    TOK_COLON,
-    TOK_EOF,
-    TOK_ILLEGAL,
+    TOKENS
 } TokenType;
+#undef X
+
+#define X(name) #name,
+static char* tokens[] = {TOKENS};
+#undef X
 
 typedef struct {
     TokenType    kind;
@@ -20,5 +30,7 @@ typedef struct {
 
 void initLexer(const char* source);
 Token nextToken(void);
+char* tokenStr(TokenType type);
+
 
 #endif // !LEXER_H

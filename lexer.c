@@ -72,7 +72,7 @@ static Token makeToken(TokenType type)
 
 static bool isalphanum(const char c)
 {
-    return isalnum(c) || c == '_' || c == '.' || c == '-';
+    return isalnum(c) || c == '_' || c == '.' || c == '-' || c == '/';
 }
 
 static Token readIdent(void)
@@ -96,7 +96,14 @@ Token nextToken(void)
         case ';': return makeToken(TOK_SEMICOLON);
         case '=': return makeToken(match('>') ? TOK_FAT_ARROW : TOK_ILLEGAL);
         case ':': return makeToken(TOK_COLON);
+        case ',': return makeToken(TOK_COMMA);
         case '\0': return makeToken(TOK_EOF);
         default : return makeToken(TOK_ILLEGAL);
     }
 }
+
+char* tokenStr(TokenType type)
+{
+    return tokens[type];
+}
+
