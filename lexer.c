@@ -84,6 +84,28 @@ static Token readIdent(void)
     return makeToken(TOK_IDENT);
 }
 
+static Token makeVariable(void)
+{
+    while(isalphanum(*lexer.current))
+    {
+        advance();
+    }
+    return makeToken(TOK_VAR);
+}
+
+
+static Token string(void)
+{
+    while(peek() != '"' && *lexer.current != '\0') 
+    {
+        if(peek() == '\n') lexer.line++;
+        advance();
+    }
+    if(*lexer.current == '\0') die("Unterminated string.");
+    advance();
+    return makeToken(TOK_STRING);
+}
+
 
 Token nextToken(void)
 {
@@ -97,6 +119,9 @@ Token nextToken(void)
         case '=': return makeToken(match('>') ? TOK_FAT_ARROW : TOK_ILLEGAL);
         case ':': return makeToken(TOK_COLON);
         case ',': return makeToken(TOK_COMMA);
+        case '<': return makeToken(match('-') ? TOK_ASSIGNMENT : TOK_ILLEGAL);
+        case '$': return makeVariable();
+        case '"': return string();
         case '\0': return makeToken(TOK_EOF);
         default : return makeToken(TOK_ILLEGAL);
     }

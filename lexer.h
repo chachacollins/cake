@@ -1,12 +1,17 @@
 #ifndef LEXER_H
 #define LEXER_H
 
-#define TOKENS      \
+#include "utils.h"
+
+#define TOKENS         \
     X(TOK_IDENT)       \
     X(TOK_FAT_ARROW)   \
     X(TOK_SEMICOLON)   \
     X(TOK_COLON)       \
     X(TOK_COMMA)       \
+    X(TOK_ASSIGNMENT)  \
+    X(TOK_STRING)      \
+    X(TOK_VAR)         \
     X(TOK_EOF)         \
     X(TOK_ILLEGAL)
 

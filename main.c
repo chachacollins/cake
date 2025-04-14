@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "utils.h"
 #include "parser.h"
+#include "lexer.h"
 
 
 int main(void)
@@ -9,6 +10,12 @@ int main(void)
         mem_summary();
     #endif /* ifdef DEBUG_H */
     char* source = readFile("CAKEFILE");
+    // initLexer(source);
+    // Token tok = nextToken();
+    // do {
+    //     printf("Token kind: %s line: %d chars:'%.*s'\n", tokenStr(tok.kind), tok.line, tok.length, tok.start);
+    //     tok = nextToken();
+    // }while (tok.kind != TOK_EOF);
     Rules rules = parseCakeFile(source);
     for(unsigned int i = 0; i < rules.len; i++)
     {

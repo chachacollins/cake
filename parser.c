@@ -1,3 +1,4 @@
+#include <search.h>
 #include "parser.h"
 #include "lexer.h"
 #include <string.h>
@@ -5,6 +6,9 @@
 typedef struct {
     Token current;
     Token previous;
+    ENTRY *globals;
+    Sb alloced;
+    int g_count;
 } Parser;
 
 Parser parser = {0};
@@ -41,7 +45,7 @@ static void freeRule(Rules* rules)
 static CakeRule makeTarget(void)
 {
     if(parser.current.kind != TOK_IDENT) 
-        die("[Error] expected identifier found %*.s line:%d\n", parser.current.length, parser.current.start, parser.current.line);
+        die("[Error] expected identifier found %.*s line:%d\n", parser.current.length, parser.current.start, parser.current.line);
 
     CakeRule target = {0};
     initSb(&target.commands);
@@ -54,7 +58,7 @@ static CakeRule makeTarget(void)
     //Dependancies
     if(parser.current.kind != TOK_COLON) 
     {
-        die("[Error] expected colon found %*.s line:%d\n", parser.current.length, parser.current.start, parser.current.line);
+        die("[Error] expected colon found %.*s line:%d\n", parser.current.length, parser.current.start, parser.current.line);
     }
     advance();
     if(parser.current.kind != TOK_FAT_ARROW)
@@ -74,9 +78,24 @@ static CakeRule makeTarget(void)
             parser.current.kind != TOK_SEMICOLON &&
             parser.current.kind != TOK_EOF)
         {
-            concat(&command, parser.current.start, parser.current.length);
-            concat(&command, " ", 1); 
-            advance();
+            if(parser.current.kind == TOK_VAR)
+            {
+                char* key = takeStr(parser.current.start + 1, parser.current.length - 1);
+                ENTRY e;
+                e.key = key;
+                parser.globals = hsearch(e, FIND);
+                if(parser.globals == NULL)
+                    die("Variable %.*s not found line:%d\n",
+                        parser.current.length - 1, parser.current.start + 1, parser.current.line);
+                concat(&command, (char*)parser.globals->data, strlen(parser.globals->data));
+                concat(&command, " ", 1); 
+                FREE(key);
+                advance();
+            } else {
+                concat(&command, parser.current.start, parser.current.length);
+                concat(&command, " ", 1); 
+                advance();
+            }
         }
         if (command) 
         {
@@ -90,14 +109,45 @@ static CakeRule makeTarget(void)
             
     }
     if(parser.current.kind != TOK_SEMICOLON)
-        die("[Error] expected semicolon found %*.s line:%d\n", parser.current.length, parser.current.start, parser.current.line);
+        die("[Error] expected semicolon found %.*s line:%d\n", parser.current.length, parser.current.start, parser.current.line);
     advance();
     return target; 
 }
 
+static void makeVariable(void)
+{
+   if(parser.g_count > 100) die("[Error]: Too many variables declared");
+   ENTRY e; 
+   char* key = takeStr(parser.current.start + 1, parser.current.length - 1);
+   e.key = key;
+   addSb(&parser.alloced, key);
+   advance();
+   if(parser.current.kind != TOK_ASSIGNMENT)
+        die("[Error] expected <- found %.*s line:%d\n",
+            parser.current.length, parser.current.start, parser.current.line);
+
+   advance();
+   if(parser.current.kind != TOK_STRING)
+        die("[Error] expected string found %.*s line:%d\n", 
+            parser.current.length, parser.current.start, parser.current.line);
+
+   char *data = takeStr(parser.current.start + 1, parser.current.length - 2);
+   addSb(&parser.alloced, data);
+   e.data = (void *)data;
+   parser.globals = hsearch(e, ENTER);
+   if(parser.globals == NULL)
+   {
+        die("'This will never fail' said a naive dev\n");
+   }
+   advance();
+   parser.g_count++;
+}
+
+
 Rules parseCakeFile(const char* source)
 {
     Rules rules;
+    hcreate(100);
     initRule(&rules);
     initLexer(source);
     advance();
@@ -106,12 +156,21 @@ Rules parseCakeFile(const char* source)
         switch (parser.current.kind)
         {
             case TOK_IDENT: addRule(&rules, makeTarget()); break;
+            case TOK_VAR: makeVariable(); break;
             default: 
+                printf("%s\n", tokenStr(parser.current.kind));
                 UNIMPLEMENTED;
         }
     }
+    for(unsigned int i = 0; i < parser.alloced.len; ++i)
+    {
+        FREE(parser.alloced.strings[i]);
+    }
+    FREE(parser.alloced.strings);
+    hdestroy();
     return rules;
 }
+
 void freeParser(Rules* rules)
 {
     for(unsigned int i = 0; i < rules->len; ++i)

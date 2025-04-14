@@ -63,8 +63,9 @@ static void mem_dbg(void)
         for(int i = 0; i < alloc_count; ++i)
         {
             Allocation a = allocations[i];
-            printf("[Warning]: memory leak size %zu bytes detected at address: %p line:%d file: %s\n",
+            printf("[Warning]: automatically cleaning memory leak size %zu bytes detected at address: %p line:%d file: %s\n",
                    a.size, a.ptr, a.line, a.file);
+            free(allocations[i].ptr);
         }
     }
 }

@@ -1,5 +1,8 @@
+$cc <- "clang"
+$buildfiles <- "main.c parser.c"
+
 main : main.o => 
        mkdir bin,
-       gcc -o bin/main main.c;
+       $cc $buildfiles -o bin/main;
 
-main.o :=> gcc -c main;
+main.o :=> $cc -c main;
