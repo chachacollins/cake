@@ -2,9 +2,11 @@
 #define PARSER_H
 
 #include "utils.h"
+#include <stdbool.h>
 
 typedef struct {
     char* target;
+    bool phony;
     Sb deps;
     Sb  commands;
 }CakeRule;
@@ -15,7 +17,7 @@ typedef struct {
     CakeRule* rules;
 }Rules;
 
-Rules parseCakeFile(const char* source);
+Rules parseCakeFile(char* source);
 void freeParser(Rules* rules);
 
 #endif // !PARSER_H

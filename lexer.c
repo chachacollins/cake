@@ -72,7 +72,7 @@ static Token makeToken(TokenType type)
 
 static bool isalphanum(const char c)
 {
-    return isalnum(c) || c == '_' || c == '.' || c == '-' || c == '/';
+    return isalnum(c) || c == '_' || c == '.' || c == '-' || c == '/' || c == '@';
 }
 
 static Token readIdent(void)

@@ -52,7 +52,15 @@ static CakeRule makeTarget(void)
     initSb(&target.deps);
 
     //Target
-    target.target = takeStr(parser.current.start, parser.current.length);
+    char* targetstr = takeStr(parser.current.start, parser.current.length);
+    if(*targetstr == '@') 
+    {
+        target.phony = true;
+        target.target = targetstr + 1;
+    } else {
+        target.phony = false;
+        target.target = targetstr;
+    }
     advance();
 
     //Dependancies
@@ -144,7 +152,7 @@ static void makeVariable(void)
 }
 
 
-Rules parseCakeFile(const char* source)
+Rules parseCakeFile(char* source)
 {
     Rules rules;
     hcreate(100);
@@ -159,6 +167,7 @@ Rules parseCakeFile(const char* source)
             case TOK_VAR: makeVariable(); break;
             default: 
                 printf("%s\n", tokenStr(parser.current.kind));
+                printf("%.*s\n", parser.current.length, parser.current.start);
                 UNIMPLEMENTED;
         }
     }
@@ -168,6 +177,7 @@ Rules parseCakeFile(const char* source)
     }
     FREE(parser.alloced.strings);
     hdestroy();
+    FREE(source);
     return rules;
 }
 
@@ -187,7 +197,12 @@ void freeParser(Rules* rules)
         }
         FREE(rules->rules[i].commands.strings);
         
+        if(rules->rules[i].phony == true)
+        {
+            FREE(rules->rules[i].target - 1);
+        } else {
         FREE(rules->rules[i].target);
+        }
     }
     freeRule(rules);
 }

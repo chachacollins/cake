@@ -1,8 +1,11 @@
 $cc <- "clang"
-$buildfiles <- "main.c parser.c"
+$compflags <- "-Wpedantic -Wall -Wextra -Werror -std=gnu11 "
+$buildfiles <- "main.c utils.c lexer.c debug.c parser.c"
 
-main : main.o => 
-       mkdir bin,
-       $cc $buildfiles -o bin/main;
+@debug :=> 
+    $cc -ggdb $buildfiles -o cake $compflags;
 
-main.o :=> $cc -c main;
+# This is awesome
+@release :=> 
+    $cc -O3 $buildfiles -o cake $compflags;
+
