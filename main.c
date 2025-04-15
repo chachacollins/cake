@@ -1,21 +1,41 @@
 #include <stdio.h>
+#include <unistd.h>
 #include "utils.h"
 #include "parser.h"
-#include "lexer.h"
 
-
-int main(void)
+static void usage(void)
 {
+    fprintf(stderr,"[Usage]");
+}
+
+
+int main(int argc, char* argv[])
+{
+    int opt;
     #ifdef DEBUG_H
         mem_summary();
     #endif /* ifdef DEBUG_H */
-    char* source = readFile("CAKEFILE");
+    char* filename = NULL;
+    while((opt = getopt(argc, argv, "hf:")) != -1)
+    {
+        switch(opt)
+        {
+            case 'f': filename = optarg; break;
+            case 'h': usage(); return 0;
+            case '?': 
+                fprintf(stderr, "[Error]: Unknown command\n");
+                return 1; 
+        }
+    }
+    
+    char* source = readFile((filename ? filename : "CAKEFILE"));
     Rules rules;
     ParseResult result = parseCakeFile(source, &rules);
     FREE(source);
     if(result != PARSE_SUCCESS) 
     {
         freeRules(&rules);
+        return 1; 
     }
     for(unsigned int i = 0; i < rules.len; i++)
     {
@@ -37,4 +57,5 @@ int main(void)
         printf("---------------\n");
     }
     freeRules(&rules);
+    return 0;
 }
