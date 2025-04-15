@@ -183,14 +183,13 @@ ParseResult parseCakeFile(char* source, Rules* rules)
     initRule(rules);
     initLexer(source);
     advance();
+    CakeRule target;
     while(parser.current.kind != TOK_EOF)
     {
         switch (parser.current.kind)
         {
             case TOK_IDENT: 
-                CakeRule target;
-                ParseResult result = makeTarget(&target);
-                if(result != PARSE_SUCCESS)
+                if(makeTarget(&target) != PARSE_SUCCESS)
                 {
                     freeParser();
                     return PARSE_ERROR;

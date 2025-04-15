@@ -2,7 +2,7 @@ CC="clang"
 
 BUILDFILES="main.c utils.c lexer.c debug.c parser.c"
 
-COMPFLAGS="-Wpedantic -Wall -Wextra -Werror -std=gnu23 "
+COMPFLAGS="-Wpedantic -Wall -Wextra -Werror -std=gnu11 "
 
 if [[ $1 == "release" ]]; then
     set -xe
