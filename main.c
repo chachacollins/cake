@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include "utils.h"
 #include "parser.h"
+#include "eval.h"
 
 static void usage(void)
 {
@@ -15,6 +16,10 @@ int main(int argc, char* argv[])
     #ifdef DEBUG_H
         mem_summary();
     #endif /* ifdef DEBUG_H */
+    if(argc < 2)
+    {
+        usage();
+    }
     char* filename = NULL;
     while((opt = getopt(argc, argv, "hf:")) != -1)
     {
@@ -37,24 +42,16 @@ int main(int argc, char* argv[])
         freeRules(&rules);
         return 1; 
     }
-    for(unsigned int i = 0; i < rules.len; i++)
+    CakeRule* target = findRule(&rules, argv[1]);
+    if(!target) 
     {
-        CakeRule rule = rules.rules[i];
-        printf("---------------\n");
-        printf("Target: %s \n", rule.target);
-        printf("Deps:  ");
-        for(unsigned int i = 0; i < rule.deps.len; i++)
-        {
-            printf("%s ", rule.deps.strings[i]);
-        }
-        printf("\n");
-        printf("commands len %d:  ", rule.commands.len);
-        for(unsigned int i = 0; i < rule.commands.len; i++)
-        {
-            printf("'%s'", rule.commands.strings[i]);
-        }
-        printf("\n");
-        printf("---------------\n");
+        fprintf(stderr, "[Error]: Target %s not found\n", argv[1]);
+        freeRules(&rules);
+    }
+    EvalResult ret = buildRule(&rules, target);
+    if(ret != EVAL_SUCCESS)
+    {
+        freeRules(&rules);
     }
     freeRules(&rules);
     return 0;

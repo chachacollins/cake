@@ -1,6 +1,6 @@
 CC="clang"
 
-BUILDFILES="main.c utils.c lexer.c debug.c parser.c"
+BUILDFILES="main.c utils.c lexer.c debug.c parser.c eval.c"
 
 COMPFLAGS="-Wpedantic -Wall -Wextra -Werror -std=gnu11 "
 

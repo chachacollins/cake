@@ -2,6 +2,13 @@
 #define EVAL_H
 
 #include "parser.h"
+#include "utils.h"
 
-CakeRule findRule(Rules* rule);
+typedef enum {
+    EVAL_SUCCESS,
+    EVAL_ERROR
+} EvalResult;
+
+CakeRule* findRule(Rules* rule, char* target);
+EvalResult buildRule(Rules* rule,CakeRule* target);
 #endif // !EVAL_H

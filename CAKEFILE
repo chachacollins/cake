@@ -1,6 +1,6 @@
 $cc <- "clang"
 $compflags <- "-Wpedantic -Wall -Wextra -Werror -std=gnu11"
-$buildfiles <- "main.c utils.c lexer.c debug.c parser.c"
+$buildfiles <- "main.c utils.c lexer.c debug.c parser.c eval.c"
 
 # Debug Build
 @debug :=> 
