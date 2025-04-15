@@ -10,7 +10,13 @@ int main(void)
         mem_summary();
     #endif /* ifdef DEBUG_H */
     char* source = readFile("CAKEFILE");
-    Rules rules = parseCakeFile(source);
+    Rules rules;
+    ParseResult result = parseCakeFile(source, &rules);
+    FREE(source);
+    if(result != PARSE_SUCCESS) 
+    {
+        freeRules(&rules);
+    }
     for(unsigned int i = 0; i < rules.len; i++)
     {
         CakeRule rule = rules.rules[i];
@@ -30,5 +36,5 @@ int main(void)
         printf("\n");
         printf("---------------\n");
     }
-    freeParser(&rules);
+    freeRules(&rules);
 }

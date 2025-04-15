@@ -12,6 +12,7 @@ typedef struct {
 } Parser;
 
 Parser parser = {0};
+static void freeParser(void);
 
 static void advance(void)
 {
@@ -42,37 +43,42 @@ static void freeRule(Rules* rules)
     initRule(rules);
 }
 
-static CakeRule makeTarget(void)
+static ParseResult makeTarget(CakeRule *target)
 {
     if(parser.current.kind != TOK_IDENT) 
-        die("[Error] expected identifier found %.*s line:%d\n", parser.current.length, parser.current.start, parser.current.line);
+    {
+        fprintf(stderr,"[Error] expected identifier found %.*s line:%d\n", 
+                parser.current.length, parser.current.start, parser.current.line);
+        return PARSE_ERROR;
+    }
 
-    CakeRule target = {0};
-    initSb(&target.commands);
-    initSb(&target.deps);
+    initSb(&target->commands);
+    initSb(&target->deps);
 
     //Target
     char* targetstr = takeStr(parser.current.start, parser.current.length);
     if(*targetstr == '@') 
     {
-        target.phony = true;
-        target.target = targetstr + 1;
+        target->phony = true;
+        target->target = targetstr + 1;
     } else {
-        target.phony = false;
-        target.target = targetstr;
+        target->phony = false;
+        target->target = targetstr;
     }
     advance();
 
     //Dependancies
     if(parser.current.kind != TOK_COLON) 
     {
-        die("[Error] expected colon found %.*s line:%d\n", parser.current.length, parser.current.start, parser.current.line);
+        fprintf(stderr,"[Error] expected colon found %.*s line:%d\n", 
+                parser.current.length, parser.current.start, parser.current.line);
+        return PARSE_ERROR;
     }
     advance();
     if(parser.current.kind != TOK_FAT_ARROW)
     {
         while (parser.current.kind != TOK_FAT_ARROW && parser.current.kind != TOK_EOF) {
-            addSb(&target.deps, takeStr(parser.current.start, parser.current.length));
+            addSb(&target->deps, takeStr(parser.current.start, parser.current.length));
             advance();
         }
     }
@@ -92,9 +98,12 @@ static CakeRule makeTarget(void)
                 ENTRY e;
                 e.key = key;
                 parser.globals = hsearch(e, FIND);
-                if(parser.globals == NULL)
-                    die("Variable %.*s not found line:%d\n",
+                if(parser.globals == NULL) 
+                {
+                    fprintf(stderr,"Variable %.*s not found line:%d\n",
                         parser.current.length - 1, parser.current.start + 1, parser.current.line);
+                    return PARSE_ERROR;
+                }
                 concat(&command, (char*)parser.globals->data, strlen(parser.globals->data));
                 concat(&command, " ", 1); 
                 FREE(key);
@@ -110,34 +119,48 @@ static CakeRule makeTarget(void)
             size_t len = strlen(command);
             if (len > 0 && command[len - 1] == ' ')
                 command[len - 1] = '\0';
-            addSb(&target.commands, command);
+            addSb(&target->commands, command);
         }
         if (parser.current.kind == TOK_COMMA)
             advance();
             
     }
     if(parser.current.kind != TOK_SEMICOLON)
-        die("[Error] expected semicolon found %.*s line:%d\n", parser.current.length, parser.current.start, parser.current.line);
+    {
+        fprintf(stderr,"[Error] expected semicolon found %.*s line:%d\n", 
+                parser.current.length, parser.current.start, parser.current.line);
+        return PARSE_ERROR;
+    }
     advance();
-    return target; 
+    return PARSE_SUCCESS; 
 }
 
-static void makeVariable(void)
+static ParseResult makeVariable(void)
 {
-   if(parser.g_count > 100) die("[Error]: Too many variables declared");
+   if(parser.g_count > 100)
+   {
+        fprintf(stderr,"[Error]: Too many variables declared");
+        return PARSE_ERROR;
+   }
    ENTRY e; 
    char* key = takeStr(parser.current.start + 1, parser.current.length - 1);
    e.key = key;
    addSb(&parser.alloced, key);
    advance();
    if(parser.current.kind != TOK_ASSIGNMENT)
-        die("[Error] expected <- found %.*s line:%d\n",
+   {
+        fprintf(stderr,"[Error] expected <- found %.*s line:%d\n",
             parser.current.length, parser.current.start, parser.current.line);
+        return PARSE_ERROR;
+   }
 
    advance();
    if(parser.current.kind != TOK_STRING)
-        die("[Error] expected string found %.*s line:%d\n", 
-            parser.current.length, parser.current.start, parser.current.line);
+   { 
+        fprintf(stderr,"[Error] expected string found %.*s line:%d\n", 
+                parser.current.length, parser.current.start, parser.current.line);
+        return PARSE_ERROR;
+    }
 
    char *data = takeStr(parser.current.start + 1, parser.current.length - 2);
    addSb(&parser.alloced, data);
@@ -145,43 +168,64 @@ static void makeVariable(void)
    parser.globals = hsearch(e, ENTER);
    if(parser.globals == NULL)
    {
-        die("'This will never fail' said a naive dev\n");
+        fprintf(stderr,"'This will never fail' said a naive dev\n");
+        return PARSE_ERROR;
    }
    advance();
    parser.g_count++;
+   return PARSE_SUCCESS;
 }
 
 
-Rules parseCakeFile(char* source)
+ParseResult parseCakeFile(char* source, Rules* rules)
 {
-    Rules rules;
     hcreate(100);
-    initRule(&rules);
+    initRule(rules);
     initLexer(source);
     advance();
     while(parser.current.kind != TOK_EOF)
     {
         switch (parser.current.kind)
         {
-            case TOK_IDENT: addRule(&rules, makeTarget()); break;
-            case TOK_VAR: makeVariable(); break;
+            case TOK_IDENT: 
+                CakeRule target;
+                ParseResult result = makeTarget(&target);
+                if(result != PARSE_SUCCESS)
+                {
+                    freeParser();
+                    return PARSE_ERROR;
+                }
+                addRule(rules, target);
+                break;
+            case TOK_VAR:
+                if(makeVariable() != PARSE_SUCCESS)
+                {
+                    freeParser();
+                    return PARSE_ERROR;
+                }
+                break;
             default: 
-                printf("%s\n", tokenStr(parser.current.kind));
-                printf("%.*s\n", parser.current.length, parser.current.start);
-                UNIMPLEMENTED;
+               fprintf(stderr, "This is caused an error in the parser %*.s line:%d\n",
+                       parser.current.length, parser.current.start, parser.current.line);
+
+               freeParser();
+               return PARSE_ERROR;
         }
     }
+    freeParser();
+    return PARSE_SUCCESS;
+}
+static void freeParser(void)
+{
+    hdestroy();
     for(unsigned int i = 0; i < parser.alloced.len; ++i)
     {
         FREE(parser.alloced.strings[i]);
     }
     FREE(parser.alloced.strings);
-    hdestroy();
-    FREE(source);
-    return rules;
 }
 
-void freeParser(Rules* rules)
+void freeRules(Rules* rules)
 {
     for(unsigned int i = 0; i < rules->len; ++i)
     {
@@ -201,7 +245,7 @@ void freeParser(Rules* rules)
         {
             FREE(rules->rules[i].target - 1);
         } else {
-        FREE(rules->rules[i].target);
+            FREE(rules->rules[i].target);
         }
     }
     freeRule(rules);

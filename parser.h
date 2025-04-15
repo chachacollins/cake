@@ -17,7 +17,12 @@ typedef struct {
     CakeRule* rules;
 }Rules;
 
-Rules parseCakeFile(char* source);
-void freeParser(Rules* rules);
+typedef enum {
+    PARSE_SUCCESS,
+    PARSE_ERROR,
+} ParseResult;
+
+ParseResult parseCakeFile(char* source, Rules* rules);
+void freeRules(Rules* rules);
 
 #endif // !PARSER_H
