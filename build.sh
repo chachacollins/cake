@@ -1,8 +1,8 @@
 CC="clang"
 
-BUILDFILES="main.c utils.c lexer.c debug.c parser.c eval.c"
+BUILDFILES="src/main.c src/utils.c src/lexer.c src/debug.c src/parser.c src/eval.c"
 
-COMPFLAGS="-Wpedantic -Wall -Wextra -Werror -std=gnu11 "
+COMPFLAGS="-Wpedantic -Wall -Wextra -Werror -std=gnu11 -Iinclude"
 
 if [[ $1 == "release" ]]; then
     set -xe

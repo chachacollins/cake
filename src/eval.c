@@ -1,9 +1,13 @@
 #include <string.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <stdbool.h>
+#include <time.h>
 #include <unistd.h>
 #include <errno.h>
 #include "utils.h"
 #include "eval.h"
+
 
 CakeRule* findRule(Rules* rules, char* target)
 {
@@ -63,7 +67,7 @@ static EvalResult execCommand(Sb* commands)
             continue; 
         }
 
-        printf("Running command: %s\n", commands->strings[i]);
+        printf("[Running]: %s\n", commands->strings[i]);
 
         errno = 0;
         pid_t pid = fork();
@@ -103,21 +107,54 @@ static EvalResult execCommand(Sb* commands)
     }
     return EVAL_SUCCESS;
 }
+static bool getModTime(const char* filename, time_t *modtime)
+{
+    struct stat file_stat;
+    if(stat(filename, &file_stat) == 0)
+    {
+        *modtime = file_stat.st_mtime;
+        return true;
+    }
+    return false;
+}
+
+static bool shouldRebuild(CakeRule* target)
+{
+    if(target->phony) return true;
+    time_t target_time;
+    bool target_exits = getModTime(target->target, &target_time);
+    if(!target_exits) return true;
+    for(unsigned int i = 0; i < target->deps.len; ++i)
+    {
+        time_t deps_time;
+        if(getModTime(target->deps.strings[i], &deps_time) && difftime(deps_time,target_time) > 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
 
 EvalResult buildRule(Rules* rules, CakeRule* target)
 {
-    if(target->deps.len != 0)
+    if(target->phony != false || shouldRebuild(target))
     {
-        for (unsigned int i = 0; i < target->deps.len; i++) {
-            CakeRule* rule = findRule(rules, target->deps.strings[i]);
-            if(rule != NULL)
-            { 
-                EvalResult result = buildRule(rules, rule);
-                if (result != EVAL_SUCCESS) {
-                    return result;
+        if(target->deps.len != 0 )
+        {
+            for (unsigned int i = 0; i < target->deps.len; i++) {
+                CakeRule* rule = findRule(rules, target->deps.strings[i]);
+                if(rule != NULL)
+                { 
+                    EvalResult result = buildRule(rules, rule);
+                    if (result != EVAL_SUCCESS) {
+                        return result;
+                    }
                 }
             }
         }
+        return execCommand(&target->commands);
+    } else {
+        printf("Target '%s' is up to date\n", target->target);
+        return EVAL_SUCCESS;
     }
-    return execCommand(&target->commands);
 }

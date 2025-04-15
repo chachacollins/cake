@@ -2,7 +2,6 @@
 #define EVAL_H
 
 #include "parser.h"
-#include "utils.h"
 
 typedef enum {
     EVAL_SUCCESS,

@@ -1,12 +1,20 @@
 $cc <- "clang"
-$compflags <- "-Wpedantic -Wall -Wextra -Werror -std=gnu11"
-$buildfiles <- "main.c utils.c lexer.c debug.c parser.c eval.c"
+$compflags <- "-Wpedantic -Wall -Wextra -Werror -std=gnu11 -Iinclude"
+$buildfiles <- "src/main.c src/utils.c src/lexer.c src/debug.c src/parser.c src/eval.c"
 
 # Debug Build
 @debug :=> 
-    $cc -ggdb $buildfiles -o cake $compflags;
+    mkdir bin,
+    $cc -ggdb $buildfiles -o bin/cake $compflags;
 
 # Release Build
 @release :=> 
-    $cc -O3 $buildfiles -o cake $compflags;
+    mkdir bin,
+    $cc -O3 $buildfiles -o bin/cake $compflags;
 
+@small :=>
+    mkdir bin,
+    $cc -Os $buildfiles -o bin/cake $compflags;
+
+# Clean Up
+@clean :=> rm -rf bin;
