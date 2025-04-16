@@ -78,8 +78,25 @@ static ParseResult makeTarget(CakeRule *target)
     if(parser.current.kind != TOK_FAT_ARROW)
     {
         while (parser.current.kind != TOK_FAT_ARROW && parser.current.kind != TOK_EOF) {
-            addSb(&target->deps, takeStr(parser.current.start, parser.current.length));
-            advance();
+            if(parser.current.kind == TOK_VAR)
+            {
+                char* key = takeStr(parser.current.start + 1, parser.current.length - 1);
+                ENTRY e;
+                e.key = key;
+                parser.globals = hsearch(e, FIND);
+                if(parser.globals == NULL) 
+                {
+                    fprintf(stderr,"Variable %.*s not found line:%d\n",
+                        parser.current.length - 1, parser.current.start + 1, parser.current.line);
+                    return PARSE_ERROR;
+                }
+                addSb(&target->deps, takeStr((char*)parser.globals->data, strlen((char*)parser.globals->data)));
+                FREE(key);
+                advance();
+            } else {
+                addSb(&target->deps, takeStr(parser.current.start, parser.current.length));
+                advance();
+            }
         }
     }
     advance();
@@ -228,18 +245,20 @@ void freeRules(Rules* rules)
 {
     for(unsigned int i = 0; i < rules->len; ++i)
     {
-        for(unsigned int j = 0; j < rules->rules[i].deps.len; ++j)
+        for(unsigned int j = 0; j < rules->rules[i].deps.len; j++)
         {
-            FREE(rules->rules[i].deps.strings[j]);
+            if(rules->rules[i].deps.strings[j])
+                FREE(rules->rules[i].deps.strings[j]);
         }
-        FREE(rules->rules[i].deps.strings);
-        
+        if(rules->rules[i].deps.strings)
+            FREE(rules->rules[i].deps.strings);
+
         for(unsigned int j = 0; j < rules->rules[i].commands.len; ++j)
         {
             FREE(rules->rules[i].commands.strings[j]);
         }
         FREE(rules->rules[i].commands.strings);
-        
+
         if(rules->rules[i].phony == true)
         {
             FREE(rules->rules[i].target - 1);
