@@ -7,6 +7,7 @@
 typedef struct {
     char* target;
     bool phony;
+    bool was_rebuilt;
     Sb deps;
     Sb  commands;
 }CakeRule;

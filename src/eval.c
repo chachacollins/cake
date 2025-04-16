@@ -137,24 +137,33 @@ static bool shouldRebuild(CakeRule* target)
 
 EvalResult buildRule(Rules* rules, CakeRule* target)
 {
-    if(target->phony != false || shouldRebuild(target))
+    bool dependency_rebuilt = false;
+    if(target->deps.len != 0)
     {
-        if(target->deps.len != 0 )
-        {
-            for (unsigned int i = 0; i < target->deps.len; i++) {
-                CakeRule* rule = findRule(rules, target->deps.strings[i]);
-                if(rule != NULL)
-                { 
-                    EvalResult result = buildRule(rules, rule);
-                    if (result != EVAL_SUCCESS) {
-                        return result;
-                    }
+        for (unsigned int i = 0; i < target->deps.len; i++) {
+            CakeRule* rule = findRule(rules, target->deps.strings[i]);
+            if(rule != NULL)
+            { 
+                EvalResult result = buildRule(rules, rule);
+                if (result != EVAL_SUCCESS) {
+                    return result;
+                }
+                if (rule->was_rebuilt) {
+                    dependency_rebuilt = true;
                 }
             }
         }
+    }
+
+    bool needs_rebuild = target->phony || dependency_rebuilt || shouldRebuild(target);
+    
+    if(needs_rebuild)
+    {
+        target->was_rebuilt = true;
         return execCommand(&target->commands);
     } else {
         printf("Target '%s' is up to date\n", target->target);
+        target->was_rebuilt = false;
         return EVAL_SUCCESS;
     }
 }

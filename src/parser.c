@@ -149,6 +149,7 @@ static ParseResult makeTarget(CakeRule *target)
         return PARSE_ERROR;
     }
     advance();
+    target->was_rebuilt = false;
     return PARSE_SUCCESS; 
 }
 
