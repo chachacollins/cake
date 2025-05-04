@@ -86,7 +86,7 @@ bin/cake : $buildfiles =>
 cake [OPTIONS] TARGET
 
 Options:
-  -f FILENAME  Specify build file (default: CAKEFILE)
+  -d           Dry run the specified Rule
   -h           Display help message and exit
 
 Arguments:
