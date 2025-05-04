@@ -40,26 +40,29 @@ int main(int argc, char* argv[])
     }
     
     char* source = readFile((filename ? filename : "CAKEFILE"));
-    Rules rules;
+    Rules rules = {0};
     ParseResult result = parseCakeFile(source, &rules);
     FREE(source);
     if(result != PARSE_SUCCESS) 
     {
-        freeRules(&rules);
+        goto error;
         return 1; 
     }
     CakeRule* target = findRule(&rules, argv[1]);
     if(!target) 
     {
         fprintf(stderr, "[Error]: Target %s not found\n", argv[1]);
-        freeRules(&rules);
+        goto error;
         return 1;
     }
     EvalResult ret = buildRule(&rules, target);
     if(ret != EVAL_SUCCESS)
     {
-        freeRules(&rules);
+        goto error;
     }
     freeRules(&rules);
     return 0;
+error:
+    if(rules.len > 0) freeRules(&rules);
+    return 1;
 }
