@@ -9,5 +9,5 @@ typedef enum {
 } EvalResult;
 
 CakeRule* findRule(Rules* rule, char* target);
-EvalResult buildRule(Rules* rule,CakeRule* target);
+EvalResult buildRule(Rules* rule,CakeRule* target, bool dry_run);
 #endif // !EVAL_H

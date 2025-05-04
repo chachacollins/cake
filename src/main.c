@@ -8,7 +8,7 @@ static void usage(void)
 {
     fprintf(stderr, "Usage: cake [OPTIONS] TARGET\n\n");
     fprintf(stderr, "Options:\n");
-    fprintf(stderr, "  -f FILENAME  Specify build file (default: CAKEFILE)\n");
+    fprintf(stderr, "  -d           Dry run the specified Rule\n");
     fprintf(stderr, "  -h           Display this help message and exit\n\n");
     fprintf(stderr, "Arguments:\n");
     fprintf(stderr, "  TARGET       Name of the target to build\n");
@@ -27,15 +27,27 @@ int main(int argc, char* argv[])
         return 1;
     }
     char* filename = NULL;
-    while((opt = getopt(argc, argv, "hf:")) != -1)
+    char* rule = NULL;
+    bool dry_run = false;
+    while((opt = getopt(argc, argv, "hd")) != -1)
     {
         switch(opt)
         {
-            case 'f': filename = optarg; break;
-            case 'h': usage(); return 0;
+            case 'h':
+                usage(); 
+                return 0;
+            case 'd': 
+                if(optind > argc)
+                {
+                    fprintf(stderr, "[Error]: expected rule name after -d\n");
+                    goto error;
+                }
+                rule = argv[optind]; 
+                dry_run = true;
+                break;
             case '?': 
                 fprintf(stderr, "[Error]: Unknown command\n");
-                return 1; 
+                goto error;
         }
     }
     
@@ -46,16 +58,15 @@ int main(int argc, char* argv[])
     if(result != PARSE_SUCCESS) 
     {
         goto error;
-        return 1; 
     }
-    CakeRule* target = findRule(&rules, argv[1]);
+    if(!dry_run) rule = argv[1];
+    CakeRule* target = findRule(&rules, rule);
     if(!target) 
     {
         fprintf(stderr, "[Error]: Target %s not found\n", argv[1]);
         goto error;
-        return 1;
     }
-    EvalResult ret = buildRule(&rules, target);
+    EvalResult ret = buildRule(&rules, target, dry_run);
     if(ret != EVAL_SUCCESS)
     {
         goto error;

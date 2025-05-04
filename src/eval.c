@@ -21,7 +21,7 @@ CakeRule* findRule(Rules* rules, char* target)
     return NULL;
 }
 
-static EvalResult execCommand(Sb* commands)
+static EvalResult execCommand(Sb* commands, bool dry_run)
 {
     for(unsigned int i = 0; i < commands->len; ++i)
     {
@@ -67,41 +67,43 @@ static EvalResult execCommand(Sb* commands)
             continue; 
         }
 
-        printf("[Running]: %s\n", commands->strings[i]);
-
-        errno = 0;
-        pid_t pid = fork();
-        int status;
-        switch (pid)
-        {
-            case -1: 
-                perror("[Error]");
-                FREE(cmd_copy);
-                FREE(args);
-                return EVAL_ERROR;
-            case 0:
-                errno = 0;
-                execvp(args[0], args);
-                perror("[Error]");
-                return EVAL_ERROR;
-                break;
-            default:
-                if (waitpid(pid, &status, 0) == -1) {
-                    perror("[Error] waitpid failed");
+        if(dry_run) {
+            printf("%s\n", commands->strings[i]);
+        } else {
+            printf("[Running]: %s\n", commands->strings[i]);
+            errno = 0;
+            pid_t pid = fork();
+            int status;
+            switch (pid)
+            {
+                case -1: 
+                    perror("[Error]");
                     FREE(cmd_copy);
                     FREE(args);
                     return EVAL_ERROR;
-                }
-
-                if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
-                    fprintf(stderr, "[Error] Command failed with exit code %d\n", WEXITSTATUS(status));
-                    FREE(cmd_copy);
-                    FREE(args);
+                case 0:
+                    errno = 0;
+                    execvp(args[0], args);
+                    perror("[Error]");
                     return EVAL_ERROR;
-                }
-                break;
+                    break;
+                default:
+                    if (waitpid(pid, &status, 0) == -1) {
+                        perror("[Error] waitpid failed");
+                        FREE(cmd_copy);
+                        FREE(args);
+                        return EVAL_ERROR;
+                    }
+
+                    if (WIFEXITED(status) && WEXITSTATUS(status) != 0) {
+                        fprintf(stderr, "[Error] Command failed with exit code %d\n", WEXITSTATUS(status));
+                        FREE(cmd_copy);
+                        FREE(args);
+                        return EVAL_ERROR;
+                    }
+                    break;
+            }
         }
-
         FREE(cmd_copy);
         FREE(args);
     }
@@ -135,7 +137,7 @@ static bool shouldRebuild(CakeRule* target)
     return false;
 }
 
-EvalResult buildRule(Rules* rules, CakeRule* target)
+EvalResult buildRule(Rules* rules, CakeRule* target, bool dry_run)
 {
     bool dependency_rebuilt = false;
     if(target->deps.len != 0)
@@ -144,7 +146,7 @@ EvalResult buildRule(Rules* rules, CakeRule* target)
             CakeRule* rule = findRule(rules, target->deps.strings[i]);
             if(rule != NULL)
             { 
-                EvalResult result = buildRule(rules, rule);
+                EvalResult result = buildRule(rules, rule, dry_run);
                 if (result != EVAL_SUCCESS) {
                     return result;
                 }
@@ -160,7 +162,7 @@ EvalResult buildRule(Rules* rules, CakeRule* target)
     if(needs_rebuild)
     {
         target->was_rebuilt = true;
-        return execCommand(&target->commands);
+        return execCommand(&target->commands, dry_run);
     } else {
         printf("Target '%s' is up to date\n", target->target);
         target->was_rebuilt = false;
