@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #include "utils.h"
 #include "parser.h"
 #include "eval.h"
@@ -60,10 +61,15 @@ int main(int argc, char* argv[])
         goto error;
     }
     if(!dry_run) rule = argv[1];
+    if(rule[0] == '@')
+    {
+        rule = strtok(rule, "@");
+    }
+    rule = strtok(rule, " ");
     CakeRule* target = findRule(&rules, rule);
     if(!target) 
     {
-        fprintf(stderr, "[Error]: Target %s not found\n", argv[1]);
+        fprintf(stderr, "[Error]: Target %s not found\n", rule);
         goto error;
     }
     EvalResult ret = buildRule(&rules, target, dry_run);

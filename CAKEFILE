@@ -8,16 +8,17 @@ $buildfiles <- "src/main.c src/utils.c src/lexer.c src/debug.c src/parser.c src/
     $cc -ggdb $buildfiles -o bin/cake $compflags;
 
 # Release Build
-@release :=> 
+@release : => 
     mkdir -p bin,
     $cc -O3 $buildfiles -o bin/cake $compflags;
 
 # Optimized for size
-@small :=>
+@small : =>
     mkdir -p bin,
     $cc -Os $buildfiles -o bin/cake $compflags;
 
+
 # Clean Up
-@clean :=> 
+@clean : => 
     rm -rf bin;
 
