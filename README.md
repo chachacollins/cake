@@ -1,6 +1,6 @@
 # CAKE
 
-A lightweight, easy-to-use build system for scaffolding projects.
+A lightweight, easy-to-use build system for C projects.
 
 > [!WARNING]
 > This is not a production-ready application. Use at your own risk.

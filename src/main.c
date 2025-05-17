@@ -15,6 +15,16 @@ static void usage(void)
     fprintf(stderr, "  TARGET       Name of the target to build\n");
 }
 
+static char* sanitizeRule(char* rule)
+{
+    if(rule[0] == '@')
+    {
+        rule = strtok(rule, "@");
+    }
+    rule = strtok(rule, " ");
+    return rule;
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -61,11 +71,7 @@ int main(int argc, char* argv[])
         goto error;
     }
     if(!dry_run) rule = argv[1];
-    if(rule[0] == '@')
-    {
-        rule = strtok(rule, "@");
-    }
-    rule = strtok(rule, " ");
+    rule = sanitizeRule(rule);
     CakeRule* target = findRule(&rules, rule);
     if(!target) 
     {

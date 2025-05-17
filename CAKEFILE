@@ -1,11 +1,11 @@
-$cc <- "clang"
+$cc <- "gcc"
 $compflags <- "-Wpedantic -Wall -Wextra -Werror -std=gnu11 -Iinclude"
 $buildfiles <- "src/main.c src/utils.c src/lexer.c src/debug.c src/parser.c src/eval.c"
 
 # Debug Build
 @debug : $buildfiles => 
     mkdir -p bin,
-    $cc -ggdb $buildfiles -o bin/cake $compflags;
+    $cc -ggdb -fanalyzer $buildfiles -o bin/cake $compflags;
 
 # Release Build
 @release : => 
@@ -21,4 +21,3 @@ $buildfiles <- "src/main.c src/utils.c src/lexer.c src/debug.c src/parser.c src/
 # Clean Up
 @clean : => 
     rm -rf bin;
-

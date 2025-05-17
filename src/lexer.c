@@ -126,9 +126,3 @@ Token nextToken(void)
         default : return makeToken(TOK_ILLEGAL);
     }
 }
-
-char* tokenStr(TokenType type)
-{
-    return tokens[type];
-}
-
