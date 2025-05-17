@@ -7,7 +7,7 @@
 
 static void usage(void)
 {
-    fprintf(stderr, "Usage: cake [OPTIONS] TARGET\n\n");
+    fprintf(stderr, "Usage: faire [OPTIONS] TARGET\n\n");
     fprintf(stderr, "Options:\n");
     fprintf(stderr, "  -d           Dry run the specified Rule\n");
     fprintf(stderr, "  -h           Display this help message and exit\n\n");
@@ -62,9 +62,9 @@ int main(int argc, char* argv[])
         }
     }
     
-    char* source = readFile((filename ? filename : "CAKEFILE"));
+    char* source = readFile((filename ? filename : "FAIRE"));
     Rules rules = {0};
-    ParseResult result = parseCakeFile(source, &rules);
+    ParseResult result = parseFaireFile(source, &rules);
     FREE(source);
     if(result != PARSE_SUCCESS) 
     {
@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
     }
     if(!dry_run) rule = argv[1];
     rule = sanitizeRule(rule);
-    CakeRule* target = findRule(&rules, rule);
+    FaireRule* target = findRule(&rules, rule);
     if(!target) 
     {
         fprintf(stderr, "[Error]: Target %s not found\n", rule);

@@ -9,7 +9,7 @@
 #include "eval.h"
 
 
-CakeRule* findRule(Rules* rules, char* target)
+FaireRule* findRule(Rules* rules, char* target)
 {
     for(unsigned int i = 0; i < rules->len; ++i)
     {
@@ -120,7 +120,7 @@ static bool getModTime(const char* filename, time_t *modtime)
     return false;
 }
 
-static bool shouldRebuild(CakeRule* target)
+static bool shouldRebuild(FaireRule* target)
 {
     if(target->phony) return true;
     time_t target_time;
@@ -137,13 +137,13 @@ static bool shouldRebuild(CakeRule* target)
     return false;
 }
 
-EvalResult buildRule(Rules* rules, CakeRule* target, bool dry_run)
+EvalResult buildRule(Rules* rules, FaireRule* target, bool dry_run)
 {
     bool dependency_rebuilt = false;
     if(target->deps.len != 0)
     {
         for (unsigned int i = 0; i < target->deps.len; i++) {
-            CakeRule* rule = findRule(rules, target->deps.strings[i]);
+            FaireRule* rule = findRule(rules, target->deps.strings[i]);
             if(rule != NULL)
             { 
                 EvalResult result = buildRule(rules, rule, dry_run);

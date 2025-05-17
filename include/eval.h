@@ -8,6 +8,6 @@ typedef enum {
     EVAL_ERROR
 } EvalResult;
 
-CakeRule* findRule(Rules* rule, char* target);
-EvalResult buildRule(Rules* rule,CakeRule* target, bool dry_run);
+FaireRule* findRule(Rules* rule, char* target);
+EvalResult buildRule(Rules* rule,FaireRule* target, bool dry_run);
 #endif // !EVAL_H

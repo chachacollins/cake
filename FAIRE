@@ -5,17 +5,17 @@ $buildfiles <- "src/main.c src/utils.c src/lexer.c src/debug.c src/parser.c src/
 # Debug Build
 @debug : $buildfiles => 
     mkdir -p bin,
-    $cc -ggdb -fanalyzer $buildfiles -o bin/cake $compflags;
+    $cc -ggdb -fanalyzer $buildfiles -o bin/faire $compflags;
 
 # Release Build
 @release : => 
     mkdir -p bin,
-    $cc -O3 $buildfiles -o bin/cake $compflags;
+    $cc -O3 $buildfiles -o bin/faire $compflags;
 
 # Optimized for size
 @small : =>
     mkdir -p bin,
-    $cc -Os $buildfiles -o bin/cake $compflags;
+    $cc -Os $buildfiles -o bin/faire $compflags;
 
 
 # Clean Up

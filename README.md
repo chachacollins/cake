@@ -1,4 +1,4 @@
-# CAKE
+# FAIRE
 
 A lightweight, easy-to-use build system for C projects.
 
@@ -7,7 +7,7 @@ A lightweight, easy-to-use build system for C projects.
 
 ## Overview
 
-CAKE is a simple build system that provides an intuitive syntax for defining build rules, dependencies, and variables to automate your build process.
+FAIRE is a simple build system that provides an intuitive syntax for defining build rules, dependencies, and variables to automate your build process.
 
 ## Syntax
 
@@ -48,7 +48,7 @@ Phony rules (not representing actual files) are prefixed with `@`:
 
 ## Examples
 
-### Basic CAKEFILE
+### Basic FAIRE file 
 
 ```
 $cc <- "clang"
@@ -56,24 +56,24 @@ $compflags <- "-Wpedantic -Wall -Wextra -Werror -std=gnu11 -Iinclude"
 $buildfiles <- "src/main.c src/utils.c src/lexer.c src/debug.c src/parser.c src/eval.c"
 
 # Regular file target (not phony)
-bin/cake : $buildfiles =>
+bin/faire : $buildfiles =>
     mkdir -p bin,
-    $cc $buildfiles -o bin/cake $compflags;
+    $cc $buildfiles -o bin/faire $compflags;
 
 # Debug Build
 @debug :=> 
     mkdir -p bin,
-    $cc -ggdb $buildfiles -o bin/cake $compflags;
+    $cc -ggdb $buildfiles -o bin/faire $compflags;
 
 # Release Build
 @release :=> 
     mkdir -p bin,
-    $cc -O3 $buildfiles -o bin/cake $compflags;
+    $cc -O3 $buildfiles -o bin/faire$compflags;
 
 # Optimized for size
 @small :=>
     mkdir -p bin,
-    $cc -Os $buildfiles -o bin/cake $compflags;
+    $cc -Os $buildfiles -o bin/faire$compflags;
 
 # Clean Up
 @clean :=> 
@@ -83,7 +83,7 @@ bin/cake : $buildfiles =>
 ## Command Line Usage
 
 ```
-cake [OPTIONS] TARGET
+faire [OPTIONS] TARGET
 
 Options:
   -d           Dry run the specified Rule
@@ -102,4 +102,4 @@ Arguments:
 
 ## Project Status
 
-CAKE is currently in development and may not have all the features of more established build systems.
+FAIRE is currently in development and may not have all the features of more established build systems.

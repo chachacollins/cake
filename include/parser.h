@@ -10,12 +10,12 @@ typedef struct {
     bool was_rebuilt;
     Sb deps;
     Sb  commands;
-}CakeRule;
+}FaireRule;
 
 typedef struct {
     unsigned int len;
     unsigned int capacity;
-    CakeRule* rules;
+    FaireRule* rules;
 }Rules;
 
 typedef enum {
@@ -23,7 +23,7 @@ typedef enum {
     PARSE_ERROR,
 } ParseResult;
 
-ParseResult parseCakeFile(char* source, Rules* rules);
+ParseResult parseFaireFile(char* source, Rules* rules);
 void freeRules(Rules* rules);
 
 #endif // !PARSER_H

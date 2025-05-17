@@ -27,12 +27,12 @@ static void initRule(Rules* rules)
     rules->rules = NULL;
 }
 
-static void addRule(Rules* rules, CakeRule rule)
+static void addRule(Rules* rules, FaireRule rule)
 {
     if(rules->capacity < rules->len + 1)
     {
         rules->capacity = GROW_CAPACITY(rules->capacity);
-        rules->rules = ALLOCATE(CakeRule, rules->rules, rules->capacity * sizeof(rule));
+        rules->rules = ALLOCATE(FaireRule, rules->rules, rules->capacity * sizeof(rule));
     }
     rules->rules[rules->len++] = rule;
 }
@@ -43,7 +43,7 @@ static void freeRule(Rules* rules)
     initRule(rules);
 }
 
-static ParseResult makeTarget(CakeRule *target)
+static ParseResult makeTarget(FaireRule *target)
 {
     if(parser.current.kind != TOK_IDENT) 
     {
@@ -195,13 +195,13 @@ static ParseResult makeVariable(void)
 }
 
 
-ParseResult parseCakeFile(char* source, Rules* rules)
+ParseResult parseFaireFile(char* source, Rules* rules)
 {
     hcreate(100);
     initRule(rules);
     initLexer(source);
     advance();
-    CakeRule target;
+    FaireRule target;
     while(parser.current.kind != TOK_EOF)
     {
         switch (parser.current.kind)
